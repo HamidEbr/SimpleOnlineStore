@@ -1,9 +1,23 @@
+using Application.Commands;
+using Application.Models;
+using Application.Queries;
+using Infrastructure.Persistance;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddDbContext<StoreContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
+});
 
 var app = builder.Build();
 
@@ -16,29 +30,28 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
+app.MapPost("/api/products", async (CreateProductCommand command, IMediator mediator) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    var productId = await mediator.Send(command);
+    return Results.Created($"/api/products/{productId}", new { id = productId });
+});
 
-app.MapGet("/weatherforecast", () =>
+app.MapPut("/api/products/{id:int}/inventory", async (int id, int count, IMediator mediator) =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+    await mediator.Send(new IncreaseInventoryCountCommand(ProductId: id, Count: count));
+    return Results.NoContent();
+});
+
+app.MapGet("/api/products/{id:int}", async (Guid id, IMediator mediator) =>
+{
+    var productDto = await mediator.Send(new GetProductByIdQuery(Id: id));
+    return Results.Ok(productDto);
+});
+
+app.MapPost("/api/users/{userId:int}/orders", async (Guid userId, OrderDto orderDto, IMediator mediator) =>
+{
+    await mediator.Send(new BuyProductCommand(ProductId: orderDto.ProductId, UserId: userId));
+    return Results.NoContent();
+});
 
 app.Run();
-
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
