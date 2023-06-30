@@ -13,8 +13,19 @@ public class StoreContext : DbContext
     {
     }
 
+    public StoreContext()
+    {
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Product>();
+        modelBuilder.Entity<User>();
         modelBuilder.Entity<Order>()
             .HasOne(o => o.Product)
             .WithMany()
