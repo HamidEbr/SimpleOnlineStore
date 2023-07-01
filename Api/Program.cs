@@ -53,4 +53,10 @@ app.MapPost("/api/users/{userId}/orders", async (Guid userId, OrderDto orderDto,
     return Results.NoContent();
 });
 
+app.MapPut("/products/{id}", async (int id, UpdateProductCommand command, IMediator mediator) =>
+{
+    await mediator.Send(command);
+    return Results.NoContent();
+});
+
 app.Run();

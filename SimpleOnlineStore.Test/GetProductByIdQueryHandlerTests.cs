@@ -22,19 +22,13 @@ public class GetProductByIdQueryHandlerTests
         using var dbContext = new StoreContext(options);
         var cache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 
-        var product = new Product
-        {
-            Title = "Product 1",
-            //InventoryCount = 10,
-            Price = 100,
-            Discount = 10
-        };
+        var product = new Product(title: "Product 1", price: 100, discount: 10);
 
         dbContext.Products.Add(product);
 
         await dbContext.SaveChangesAsync();
 
-        var handler = new GetProductByIdQuery.Handler(dbContext);
+        var handler = new GetProductByIdQuery.Handler(default);
 
         var query = new GetProductByIdQuery(Id: product.Id);
 
@@ -61,7 +55,7 @@ public class GetProductByIdQueryHandlerTests
         using var dbContext = new StoreContext(options);
         var cache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 
-        var handler = new GetProductByIdQuery.Handler(dbContext);
+        var handler = new GetProductByIdQuery.Handler(default);
 
         var query = new GetProductByIdQuery(Id: Guid.NewGuid()); // use a random id that doesn't exist in the database
 

@@ -17,7 +17,7 @@ public class CreateProductCommandHandlerTests
 
         using var dbContext = new StoreContext(options);
 
-        var handler = new CreateProductCommand.Handler(dbContext, default!);
+        var handler = new CreateProductCommand.Handler(default!);
 
         var command = new CreateProductCommand
         (

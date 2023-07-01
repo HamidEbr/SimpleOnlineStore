@@ -1,9 +1,8 @@
 ﻿using Application.Models;
+using Application.Services;
 using Domain.Entities;
-using Domain.Exceptions;
 using Domain.Interfaces;
 using FluentValidation;
-using Infrastructure.Persistance;
 using MediatR;
 
 namespace Application.Queries;
@@ -19,23 +18,11 @@ public sealed record GetProductByIdQuery(Guid Id) : IRequest<ProductDto>, ICache
 
     public class Handler : IRequestHandler<GetProductByIdQuery, ProductDto>
     {
-        private readonly StoreContext _dbContext;
+        private readonly IProductService _productService;
 
-        public Handler(StoreContext dbContext) => _dbContext = dbContext;
+        public Handler(IProductService productService) => _productService = productService;
 
-        public async Task<ProductDto> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
-        {
-            var product = await _dbContext.Products.FindAsync(new object?[] { request.Id },
-                                                              cancellationToken: cancellationToken)
-                                                    ?? throw new EntityNotFoundException<Product>(request.Id);
-            return new ProductDto
-            (
-                Id: product.Id,
-                Title: product.Title,
-                InventoryCount: product.InventoryCount,
-                Price: product.Price,
-                Discount: product.Discount
-            );
-        }
+        public Task<ProductDto> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
+            => _productService.GetProductAsync(request.Id, cancellationToken);
     }
 }

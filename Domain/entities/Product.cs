@@ -4,12 +4,23 @@ namespace Domain.Entities;
 
 public class Product
 {
+    private Product()
+    {
+    }
+
+    public Product(string title, decimal price, decimal discount)
+    {
+        Title = title;
+        Price = price;
+        Discount = discount;
+    }
+
     public Guid Id { get; init; } = Guid.NewGuid();
-    public string Title { get; init; }
+    public string Title { get; private set; }
     // The current inventory count is computed from the event history
     public int InventoryCount { get; private set; }
-    public decimal Price { get; init; }
-    public decimal Discount { get; init; }
+    public decimal Price { get; private set; }
+    public decimal Discount { get; private set; }
 
     // The event history is a list of events that have been applied to the entity
     private readonly List<ProductEvent> _eventHistory = new();
@@ -19,14 +30,16 @@ public class Product
     {
         switch (ev)
         {
-            case ProductCreatedEvent createdEvent:
-                InventoryCount = createdEvent.InventoryCount;
-                break;
             case ProductPurchasedEvent:
                 InventoryCount--;
                 break;
-            case ProductRestockedEvent restockedEvent:
-                InventoryCount += restockedEvent.Quantity;
+            case IncreaseProductInventoryEvent increaseProductInventoryEvent:
+                InventoryCount += increaseProductInventoryEvent.Quantity;
+                break;
+            case UpdateProductEvent updateProductEvent:
+                Title = updateProductEvent.Title;
+                Price = updateProductEvent.Price;
+                Discount = updateProductEvent.Discount;
                 break;
         }
 

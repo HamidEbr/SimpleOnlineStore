@@ -1,4 +1,5 @@
 ﻿using Application.Commands;
+using Application.Services;
 using Domain.Entities;
 using Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
@@ -29,20 +30,20 @@ public class BuyProductCommandHandlerTests
         };
 
         dbContext.Users.Add(user);
-
+        IOrderService orderService = default;
         var product = new Product
-        {
-            Title = "Product 1",
+        (
+            title: "Product 1",
             //InventoryCount = 1,
-            Price = 100,
-            Discount = 10
-        };
+            price: 100,
+            discount: 10
+        );
 
         dbContext.Products.Add(product);
 
         await dbContext.SaveChangesAsync();
 
-        var handler = new BuyProductCommand.Handler(dbContext, cache, default);
+        var handler = new BuyProductCommand.Handler(orderService);
 
         var command = new BuyProductCommand(ProductId: product.Id, user.Id, 1);
 
@@ -81,18 +82,18 @@ public class BuyProductCommandHandlerTests
         dbContext.Users.Add(user);
 
         var product = new Product
-        {
-            Title = "Product 1",
+        (
+            title: "Product 1",
             //InventoryCount = 0,
-            Price = 100,
-            Discount = 10
-        };
+            price: 100,
+            discount: 10
+        );
 
         dbContext.Products.Add(product);
-
         await dbContext.SaveChangesAsync();
+        IOrderService orderService = default;
 
-        var handler = new BuyProductCommand.Handler(dbContext, cache, default);
+        var handler = new BuyProductCommand.Handler(orderService);
 
         var command = new BuyProductCommand(product.Id, user.Id, 1);
 

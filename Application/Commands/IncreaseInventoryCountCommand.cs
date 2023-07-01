@@ -29,7 +29,7 @@ public sealed record IncreaseInventoryCountCommand(Guid ProductId, int Count) : 
             var product = await _dbContext.Products.FindAsync(
                 new object?[] { request.ProductId },
                 cancellationToken: cancellationToken) ?? throw new EntityNotFoundException<Product>(request.ProductId);
-            product.ApplyEvent(new ProductRestockedEvent(request.ProductId, request.Count));
+            product.ApplyEvent(new IncreaseProductInventoryEvent(request.ProductId, request.Count));
         }
     }
 }
