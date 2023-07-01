@@ -37,19 +37,19 @@ app.MapPost("/api/products", async (CreateProductCommand command, IMediator medi
     return Results.Created($"/api/products/{productId}", new { id = productId });
 });
 
-app.MapPut("/api/products/{id:int}/inventory", async (Guid id, int count, IMediator mediator) =>
+app.MapPut("/api/products/{id}/inventory", async (Guid id, int count, IMediator mediator) =>
 {
     await mediator.Send(new IncreaseInventoryCountCommand(ProductId: id, Count: count));
     return Results.NoContent();
 });
 
-app.MapGet("/api/products/{id:int}", async (Guid id, IMediator mediator) =>
+app.MapGet("/api/products/{id}", async (Guid id, IMediator mediator) =>
 {
     var productDto = await mediator.Send(new GetProductByIdQuery(Id: id));
     return Results.Ok(productDto);
 });
 
-app.MapPost("/api/users/{userId:int}/orders", async (Guid userId, OrderDto orderDto, IMediator mediator) =>
+app.MapPost("/api/users/{userId}/orders", async (Guid userId, OrderDto orderDto, IMediator mediator) =>
 {
     await mediator.Send(new BuyProductCommand(ProductId: orderDto.ProductId, UserId: userId));
     return Results.NoContent();
