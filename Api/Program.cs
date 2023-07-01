@@ -1,4 +1,5 @@
-using Api;
+using Api.Behaviors;
+using Application;
 using Application.Commands;
 using Application.Models;
 using Application.Queries;
@@ -17,7 +18,7 @@ builder.Services.AddDbContext<StoreContext>(options =>
 
 builder.Services.AddStackExchangeRedisCache(options => options.Configuration = builder.Configuration.GetConnectionString("RedisConnection"));
 
-builder.Services.AddApplication(builder.Configuration, typeof(Program));
+builder.Services.AddApplication(typeof(ValidationBehavior<,>), typeof(Program));
 
 var app = builder.Build();
 

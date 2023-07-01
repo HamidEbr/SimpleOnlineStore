@@ -1,11 +1,11 @@
-﻿using Api.Behaviors;
-using FluentValidation;
+﻿using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Api;
+namespace Application;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration, Type startupType)
+    public static IServiceCollection AddApplication(this IServiceCollection services, Type validationBehavior, Type startupType)
     {
         services.AddValidatorsFromAssembly(startupType.Assembly, includeInternalTypes: true);
         services.AddMediatR(cfg =>
@@ -13,7 +13,7 @@ public static class DependencyInjection
             cfg.RegisterServicesFromAssembly(startupType.Assembly);
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
 
-            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            cfg.AddOpenBehavior(validationBehavior);
         });
         return services;
     }
