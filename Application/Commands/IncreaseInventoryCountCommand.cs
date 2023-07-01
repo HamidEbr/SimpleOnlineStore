@@ -1,4 +1,7 @@
-﻿using FluentValidation;
+﻿using Domain.Entities;
+using Domain.Events;
+using Domain.Exceptions;
+using FluentValidation;
 using Infrastructure.Persistance;
 using MediatR;
 
@@ -23,16 +26,10 @@ public sealed record IncreaseInventoryCountCommand(Guid ProductId, int Count) : 
 
         public async Task Handle(IncreaseInventoryCountCommand request, CancellationToken cancellationToken)
         {
-            var product = await _dbContext.Products.FindAsync(new object?[] { request.ProductId }, cancellationToken: cancellationToken);
-
-            if (product is null)
-            {
-                throw new Exception("Product not found");
-            }
-
-            product.InventoryCount += request.Count;
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            var product = await _dbContext.Products.FindAsync(
+                new object?[] { request.ProductId },
+                cancellationToken: cancellationToken) ?? throw new EntityNotFoundException<Product>(request.ProductId);
+            product.ApplyEvent(new ProductRestockedEvent(request.ProductId, request.Count));
         }
     }
 }

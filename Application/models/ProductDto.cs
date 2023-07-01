@@ -5,4 +5,7 @@ public sealed record ProductDto(
     string Title,
     int InventoryCount,
     decimal Price,
-    decimal Discount);
+    decimal Discount)
+{
+    public decimal FinalPrice => Price - (Price * Discount / 100);
+}

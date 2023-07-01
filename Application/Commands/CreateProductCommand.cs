@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Events;
 using FluentValidation;
 using Infrastructure.Persistance;
 using MediatR;
@@ -17,7 +18,6 @@ public sealed record CreateProductCommand(
         {
             RuleFor(v => v.Title).NotEmpty();
             RuleFor(v => v.Title).MaximumLength(40);
-            RuleFor(v => v.InventoryCount).GreaterThan(0);
             RuleFor(v => v.Price).GreaterThan(0);
         }
     }
@@ -25,31 +25,35 @@ public sealed record CreateProductCommand(
     public class Handler : IRequestHandler<CreateProductCommand, Guid>
     {
         private readonly StoreContext _dbContext;
+        private readonly IMediator _mediator;
 
-        public Handler(StoreContext dbContext) => _dbContext = dbContext;
-
-        public async Task<Guid> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+        public Handler(StoreContext dbContext, IMediator mediator)
         {
-            if (request.Title.Length > 40)
-            {
-                throw new Exception("Product title must be less than 40 characters");
-            }
+            _dbContext = dbContext;
+            _mediator = mediator;
+        }
 
-            if (_dbContext.Products.Any(p => p.Title == request.Title))
-            {
-                throw new Exception("Product title must be unique");
-            }
-
+        public async Task<Guid> Handle(CreateProductCommand command, CancellationToken cancellationToken)
+        {
             var product = new Product
             {
-                Title = request.Title,
-                InventoryCount = request.InventoryCount,
-                Price = request.Price,
-                Discount = request.Discount
+                Title = command.Title,
+                Price = command.Price,
+                Discount = command.Discount,
             };
 
             _dbContext.Products.Add(product);
             await _dbContext.SaveChangesAsync(cancellationToken);
+
+            // Publish the ProductCreatedEvent using MediatR
+            var productCreatedEvent = new ProductCreatedEvent(product.Id)
+            {
+                Title = command.Title,
+                Price = command.Price,
+                Discount = command.Discount,
+                InventoryCount = command.InventoryCount
+            };
+            await _mediator.Publish(productCreatedEvent, cancellationToken);
 
             return product.Id;
         }

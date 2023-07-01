@@ -3,9 +3,8 @@ using Application;
 using Application.Commands;
 using Application.Models;
 using Application.Queries;
-using Infrastructure.Persistance;
+using Infrastructure;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,12 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<StoreContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddStackExchangeRedisCache(options => options.Configuration = builder.Configuration.GetConnectionString("RedisConnection"));
-
-builder.Services.AddApplication(typeof(ValidationBehavior<,>), typeof(Program));
+builder.Services.AddSqlDbContext(builder.Configuration);
+builder.Services.AddRedisCache(builder.Configuration);
+builder.Services.AddApplication(typeof(CachingBehavior<,>), typeof(ValidationBehavior<,>), typeof(Program));
 
 var app = builder.Build();
 
@@ -35,6 +32,7 @@ app.MapPost("/api/products", async (CreateProductCommand command, IMediator medi
 {
     var productId = await mediator.Send(command);
     return Results.Created($"/api/products/{productId}", new { id = productId });
+    //return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, result);
 });
 
 app.MapPut("/api/products/{id}/inventory", async (Guid id, int count, IMediator mediator) =>
@@ -51,7 +49,7 @@ app.MapGet("/api/products/{id}", async (Guid id, IMediator mediator) =>
 
 app.MapPost("/api/users/{userId}/orders", async (Guid userId, OrderDto orderDto, IMediator mediator) =>
 {
-    await mediator.Send(new BuyProductCommand(ProductId: orderDto.ProductId, UserId: userId));
+    await mediator.Send(new BuyProductCommand(ProductId: orderDto.ProductId, UserId: userId, 1));
     return Results.NoContent();
 });
 

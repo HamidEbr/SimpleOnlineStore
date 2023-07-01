@@ -33,7 +33,7 @@ public class BuyProductCommandHandlerTests
         var product = new Product
         {
             Title = "Product 1",
-            InventoryCount = 1,
+            //InventoryCount = 1,
             Price = 100,
             Discount = 10
         };
@@ -42,13 +42,9 @@ public class BuyProductCommandHandlerTests
 
         await dbContext.SaveChangesAsync();
 
-        var handler = new BuyProductCommand.Handler(dbContext, cache);
+        var handler = new BuyProductCommand.Handler(dbContext, cache, default);
 
-        var command = new BuyProductCommand
-        (
-            ProductId: product.Id,
-            UserId: user.Id
-        );
+        var command = new BuyProductCommand(ProductId: product.Id, user.Id, 1);
 
         // Act
         await handler.Handle(command, CancellationToken.None);
@@ -87,7 +83,7 @@ public class BuyProductCommandHandlerTests
         var product = new Product
         {
             Title = "Product 1",
-            InventoryCount = 0,
+            //InventoryCount = 0,
             Price = 100,
             Discount = 10
         };
@@ -96,13 +92,9 @@ public class BuyProductCommandHandlerTests
 
         await dbContext.SaveChangesAsync();
 
-        var handler = new BuyProductCommand.Handler(dbContext, cache);
+        var handler = new BuyProductCommand.Handler(dbContext, cache, default);
 
-        var command = new BuyProductCommand
-        (
-            ProductId: product.Id,
-            UserId: user.Id
-        );
+        var command = new BuyProductCommand(product.Id, user.Id, 1);
 
         // Act & Assert
         await Assert.ThrowsAsync<Exception>(() => handler.Handle(command, CancellationToken.None));

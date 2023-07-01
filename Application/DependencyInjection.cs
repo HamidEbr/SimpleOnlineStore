@@ -5,14 +5,14 @@ namespace Application;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services, Type validationBehavior, Type startupType)
+    public static IServiceCollection AddApplication(this IServiceCollection services, Type cachingBehavior, Type validationBehavior, Type startupType)
     {
         services.AddValidatorsFromAssembly(startupType.Assembly, includeInternalTypes: true);
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(startupType.Assembly);
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
-
+            cfg.AddOpenBehavior(cachingBehavior);
             cfg.AddOpenBehavior(validationBehavior);
         });
         return services;
