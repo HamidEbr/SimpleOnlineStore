@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using FluentValidation;
 using Infrastructure.Persistance;
 using MediatR;
 
@@ -10,6 +11,17 @@ public sealed record CreateProductCommand(
     decimal Price,
     decimal Discount) : IRequest<Guid>
 {
+    public class Validator : AbstractValidator<CreateProductCommand>
+    {
+        public Validator()
+        {
+            RuleFor(v => v.Title).NotEmpty();
+            RuleFor(v => v.Title).MaximumLength(40);
+            RuleFor(v => v.InventoryCount).GreaterThan(0);
+            RuleFor(v => v.Price).GreaterThan(0);
+        }
+    }
+
     public class Handler : IRequestHandler<CreateProductCommand, Guid>
     {
         private readonly StoreContext _dbContext;

@@ -1,3 +1,4 @@
+using Api;
 using Application.Commands;
 using Application.Models;
 using Application.Queries;
@@ -14,10 +15,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<StoreContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
-});
+builder.Services.AddStackExchangeRedisCache(options => options.Configuration = builder.Configuration.GetConnectionString("RedisConnection"));
+
+builder.Services.AddApplication(builder.Configuration, typeof(Program));
 
 var app = builder.Build();
 
@@ -36,7 +36,7 @@ app.MapPost("/api/products", async (CreateProductCommand command, IMediator medi
     return Results.Created($"/api/products/{productId}", new { id = productId });
 });
 
-app.MapPut("/api/products/{id:int}/inventory", async (int id, int count, IMediator mediator) =>
+app.MapPut("/api/products/{id:int}/inventory", async (Guid id, int count, IMediator mediator) =>
 {
     await mediator.Send(new IncreaseInventoryCountCommand(ProductId: id, Count: count));
     return Results.NoContent();

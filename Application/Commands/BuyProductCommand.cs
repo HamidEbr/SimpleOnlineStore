@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using FluentValidation;
 using Infrastructure.Persistance;
 using MediatR;
 using Microsoft.Extensions.Caching.Distributed;
@@ -7,6 +8,15 @@ namespace Application.Commands;
 
 public sealed record BuyProductCommand(Guid ProductId, Guid UserId) : IRequest
 {
+    public class Validator : AbstractValidator<BuyProductCommand>
+    {
+        public Validator()
+        {
+            RuleFor(v => v.ProductId).NotEmpty();
+            RuleFor(v => v.UserId).NotEmpty();
+        }
+    }
+
     public class Handler : IRequestHandler<BuyProductCommand>
     {
         private readonly StoreContext _dbContext;

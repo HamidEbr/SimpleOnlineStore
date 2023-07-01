@@ -1,4 +1,5 @@
 ﻿using Application.Models;
+using FluentValidation;
 using Infrastructure.Persistance;
 using MediatR;
 using Microsoft.Extensions.Caching.Distributed;
@@ -9,6 +10,11 @@ namespace Application.Queries;
 
 public sealed record GetProductByIdQuery(Guid Id) : IRequest<ProductDto>
 {
+    public class Validator : AbstractValidator<GetProductByIdQuery>
+    {
+        public Validator() => RuleFor(v => v.Id).NotEmpty();
+    }
+
     public class Handler : IRequestHandler<GetProductByIdQuery, ProductDto>
     {
         private readonly StoreContext _dbContext;

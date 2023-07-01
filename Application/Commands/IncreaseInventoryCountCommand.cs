@@ -1,10 +1,20 @@
-﻿using Infrastructure.Persistance;
+﻿using FluentValidation;
+using Infrastructure.Persistance;
 using MediatR;
 
 namespace Application.Commands;
 
-public sealed record IncreaseInventoryCountCommand(int ProductId, int Count) : IRequest
+public sealed record IncreaseInventoryCountCommand(Guid ProductId, int Count) : IRequest
 {
+    public class Validator : AbstractValidator<IncreaseInventoryCountCommand>
+    {
+        public Validator()
+        {
+            RuleFor(v => v.ProductId).NotEmpty();
+            RuleFor(v => v.Count).GreaterThan(0);
+        }
+    }
+
     public class Handler : IRequestHandler<IncreaseInventoryCountCommand>
     {
         private readonly StoreContext _dbContext;
